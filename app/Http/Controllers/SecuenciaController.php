@@ -12,7 +12,8 @@ class SecuenciaController extends Controller
      */
     public function index()
     {
-        //
+        $secuencias = Secuencia::all();
+        return response()->json($secuencias);
     }
 
     /**
@@ -20,7 +21,6 @@ class SecuenciaController extends Controller
      */
     public function create()
     {
-        //
     }
 
     /**
@@ -28,7 +28,20 @@ class SecuenciaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255|unique:secuencias,nombre',
+            'prefijo' => 'nullable|string|max:10',
+            'valor_actual' => 'sometimes|integer|min:0',
+            'incremento' => 'sometimes|integer|min:1',
+        ]);
+
+        // Valores por defecto
+        $validated['valor_actual'] = $validated['valor_actual'] ?? 0;
+        $validated['incremento'] = $validated['incremento'] ?? 1;
+
+        $secuencia = Secuencia::create($validated);
+
+        return response()->json($secuencia, 201);
     }
 
     /**
@@ -36,7 +49,7 @@ class SecuenciaController extends Controller
      */
     public function show(Secuencia $secuencia)
     {
-        //
+        return response()->json($secuencia);
     }
 
     /**
@@ -44,7 +57,6 @@ class SecuenciaController extends Controller
      */
     public function edit(Secuencia $secuencia)
     {
-        //
     }
 
     /**
@@ -52,7 +64,16 @@ class SecuenciaController extends Controller
      */
     public function update(Request $request, Secuencia $secuencia)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => 'sometimes|string|max:255|unique:secuencias,nombre,' . $secuencia->id,
+            'prefijo' => 'nullable|string|max:10',
+            'valor_actual' => 'sometimes|integer|min:0',
+            'incremento' => 'sometimes|integer|min:1',
+        ]);
+
+        $secuencia->update($validated);
+
+        return response()->json($secuencia);
     }
 
     /**
@@ -60,6 +81,36 @@ class SecuenciaController extends Controller
      */
     public function destroy(Secuencia $secuencia)
     {
-        //
+        $secuencia->delete();
+        return response()->json(['message' => 'Secuencia eliminada correctamente'], 200);
+    }
+
+    /**
+     * Obtiene el siguiente número de la secuencia
+     */
+    public function siguiente(Secuencia $secuencia)
+    {
+        $siguiente = $secuencia->siguiente();
+        return response()->json([
+            'secuencia' => $secuencia->nombre,
+            'siguiente' => $siguiente,
+        ]);
+    }
+
+    /**
+     * Resetea una secuencia
+     */
+    public function resetear(Request $request, Secuencia $secuencia)
+    {
+        $validated = $request->validate([
+            'valor' => 'sometimes|integer|min:0',
+        ]);
+
+        $secuencia->resetear($validated['valor'] ?? 0);
+
+        return response()->json([
+            'message' => 'Secuencia reseteada correctamente',
+            'secuencia' => $secuencia,
+        ]);
     }
 }

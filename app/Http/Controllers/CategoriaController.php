@@ -12,7 +12,8 @@ class CategoriaController extends Controller
      */
     public function index()
     {
-        //
+        $categorias = Categoria::all();
+        return response()->json($categorias);
     }
 
     /**
@@ -20,7 +21,6 @@ class CategoriaController extends Controller
      */
     public function create()
     {
-        //
     }
 
     /**
@@ -28,7 +28,14 @@ class CategoriaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'activa' => 'sometimes|boolean',
+        ]);
+
+        $categoria = Categoria::create($validated);
+
+        return response()->json($categoria, 201);
     }
 
     /**
@@ -36,7 +43,7 @@ class CategoriaController extends Controller
      */
     public function show(Categoria $categoria)
     {
-        //
+        return response()->json($categoria);
     }
 
     /**
@@ -44,7 +51,6 @@ class CategoriaController extends Controller
      */
     public function edit(Categoria $categoria)
     {
-        //
     }
 
     /**
@@ -52,7 +58,14 @@ class CategoriaController extends Controller
      */
     public function update(Request $request, Categoria $categoria)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => 'sometimes|string|max:255',
+            'activa' => 'sometimes|boolean',
+        ]);
+
+        $categoria->update($validated);
+
+        return response()->json($categoria);
     }
 
     /**
@@ -60,6 +73,7 @@ class CategoriaController extends Controller
      */
     public function destroy(Categoria $categoria)
     {
-        //
+        $categoria->delete();
+        return response()->json(['message' => 'Categoría eliminada correctamente'], 200);
     }
 }

@@ -12,7 +12,8 @@ class EstadoController extends Controller
      */
     public function index()
     {
-        //
+        $estados = Estado::all();
+        return response()->json($estados);
     }
 
     /**
@@ -20,7 +21,7 @@ class EstadoController extends Controller
      */
     public function create()
     {
-        //
+        
     }
 
     /**
@@ -28,7 +29,13 @@ class EstadoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255|unique:estados,nombre',
+        ]);
+
+        $estado = Estado::create($validated);
+
+        return response()->json($estado, 201);
     }
 
     /**
@@ -36,7 +43,7 @@ class EstadoController extends Controller
      */
     public function show(Estado $estado)
     {
-        //
+        return response()->json($estado);
     }
 
     /**
@@ -44,7 +51,7 @@ class EstadoController extends Controller
      */
     public function edit(Estado $estado)
     {
-        //
+        
     }
 
     /**
@@ -52,7 +59,13 @@ class EstadoController extends Controller
      */
     public function update(Request $request, Estado $estado)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => 'sometimes|string|max:255|unique:estados,nombre,' . $estado->id,
+        ]);
+
+        $estado->update($validated);
+
+        return response()->json($estado);
     }
 
     /**
@@ -60,6 +73,7 @@ class EstadoController extends Controller
      */
     public function destroy(Estado $estado)
     {
-        //
+        $estado->delete();
+        return response()->json(['message' => 'Estado eliminado correctamente'], 200);
     }
 }

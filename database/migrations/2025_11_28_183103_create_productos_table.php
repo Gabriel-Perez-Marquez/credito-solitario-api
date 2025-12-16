@@ -13,15 +13,12 @@ return new class extends Migration
     {
         Schema::create('direccions', function (Blueprint $table) {
             $table->id();
-<<<<<<<< HEAD:database/migrations/2025_11_27_100041_create_direccions_table.php
-========
             $table->string('nombre');
             $table->text('descripcion')->nullable();
             $table->foreignId('categoria_id')->constrained('categorias');
             $table->decimal('precio', 10, 2); 
             $table->boolean('activo')->default(true);
             $table->decimal('descuento', 5, 2)->default(0);
->>>>>>>> f5deffc4c6977d6e32cc07ae4f4347c857157089:database/migrations/2025_11_28_183103_create_productos_table.php
             $table->timestamps();
         });
     }

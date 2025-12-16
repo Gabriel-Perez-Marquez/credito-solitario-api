@@ -12,7 +12,8 @@ class FacturaController extends Controller
      */
     public function index()
     {
-        //
+        $facturas = Factura::with(['pedido', 'cliente'])->get();
+        return response()->json($facturas);
     }
 
     /**
@@ -20,7 +21,6 @@ class FacturaController extends Controller
      */
     public function create()
     {
-        //
     }
 
     /**
@@ -28,7 +28,16 @@ class FacturaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'pedido_id' => 'required|exists:pedidos,id|unique:facturas,pedido_id',
+            'cliente_id' => 'required|exists:clientes,id',
+            'fechaCreacion' => 'required|date',
+        ]);
+
+        $factura = Factura::create($validated);
+        $factura->load(['pedido', 'cliente']);
+
+        return response()->json($factura, 201);
     }
 
     /**
@@ -36,7 +45,8 @@ class FacturaController extends Controller
      */
     public function show(Factura $factura)
     {
-        //
+        $factura->load(['pedido.lineasVenta.producto', 'cliente']);
+        return response()->json($factura);
     }
 
     /**
@@ -44,7 +54,6 @@ class FacturaController extends Controller
      */
     public function edit(Factura $factura)
     {
-        //
     }
 
     /**
@@ -52,7 +61,16 @@ class FacturaController extends Controller
      */
     public function update(Request $request, Factura $factura)
     {
-        //
+        $validated = $request->validate([
+            'pedido_id' => 'sometimes|exists:pedidos,id|unique:facturas,pedido_id,' . $factura->id,
+            'cliente_id' => 'sometimes|exists:clientes,id',
+            'fechaCreacion' => 'sometimes|date',
+        ]);
+
+        $factura->update($validated);
+        $factura->load(['pedido', 'cliente']);
+
+        return response()->json($factura);
     }
 
     /**
@@ -60,6 +78,7 @@ class FacturaController extends Controller
      */
     public function destroy(Factura $factura)
     {
-        //
+        $factura->delete();
+        return response()->json(['message' => 'Factura eliminada correctamente'], 200);
     }
 }

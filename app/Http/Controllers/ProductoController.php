@@ -12,7 +12,8 @@ class ProductoController extends Controller
      */
     public function index()
     {
-        //
+        $productos = Producto::with('categoria')->get();
+        return response()->json($productos);
     }
 
     /**
@@ -20,7 +21,7 @@ class ProductoController extends Controller
      */
     public function create()
     {
-        //
+        // Este método no es necesario para una API REST
     }
 
     /**
@@ -28,7 +29,19 @@ class ProductoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'categoria_id' => 'required|exists:categorias,id',
+            'precio' => 'required|numeric|min:0',
+            'activo' => 'sometimes|boolean',
+            'descuento' => 'sometimes|numeric|min:0|max:100',
+        ]);
+
+        $producto = Producto::create($validated);
+        $producto->load('categoria');
+
+        return response()->json($producto, 201);
     }
 
     /**
@@ -36,7 +49,8 @@ class ProductoController extends Controller
      */
     public function show(Producto $producto)
     {
-        //
+        $producto->load(['categoria', 'lineasVenta', 'imagenes']);
+        return response()->json($producto);
     }
 
     /**
@@ -44,7 +58,7 @@ class ProductoController extends Controller
      */
     public function edit(Producto $producto)
     {
-        //
+        // Este método no es necesario para una API REST
     }
 
     /**
@@ -52,7 +66,19 @@ class ProductoController extends Controller
      */
     public function update(Request $request, Producto $producto)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => 'sometimes|string|max:255',
+            'descripcion' => 'nullable|string',
+            'categoria_id' => 'sometimes|exists:categorias,id',
+            'precio' => 'sometimes|numeric|min:0',
+            'activo' => 'sometimes|boolean',
+            'descuento' => 'sometimes|numeric|min:0|max:100',
+        ]);
+
+        $producto->update($validated);
+        $producto->load('categoria');
+
+        return response()->json($producto);
     }
 
     /**
@@ -60,6 +86,7 @@ class ProductoController extends Controller
      */
     public function destroy(Producto $producto)
     {
-        //
+        $producto->delete();
+        return response()->json(['message' => 'Producto eliminado correctamente'], 200);
     }
 }

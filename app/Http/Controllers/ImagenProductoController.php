@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ImagenProducto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ImagenProductoController extends Controller
 {
@@ -12,7 +13,8 @@ class ImagenProductoController extends Controller
      */
     public function index()
     {
-        //
+        $imagenes = ImagenProducto::with('producto')->get();
+        return response()->json($imagenes);
     }
 
     /**
@@ -20,7 +22,6 @@ class ImagenProductoController extends Controller
      */
     public function create()
     {
-        //
     }
 
     /**
@@ -28,7 +29,26 @@ class ImagenProductoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'producto_id' => 'required|exists:productos,id',
+            'imagen' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'alt' => 'nullable|string|max:255',
+            'es_principal' => 'sometimes|boolean',
+        ]);
+
+        // Subir imagen
+        $path = $request->file('imagen')->store('productos', 'public');
+
+        $imagenProducto = ImagenProducto::create([
+            'producto_id' => $validated['producto_id'],
+            'url' => $path,
+            'alt' => $validated['alt'] ?? null,
+            'es_principal' => $validated['es_principal'] ?? false,
+        ]);
+
+        $imagenProducto->load('producto');
+
+        return response()->json($imagenProducto, 201);
     }
 
     /**
@@ -36,7 +56,8 @@ class ImagenProductoController extends Controller
      */
     public function show(ImagenProducto $imagenProducto)
     {
-        //
+        $imagenProducto->load('producto');
+        return response()->json($imagenProducto);
     }
 
     /**
@@ -44,7 +65,6 @@ class ImagenProductoController extends Controller
      */
     public function edit(ImagenProducto $imagenProducto)
     {
-        //
     }
 
     /**
@@ -52,7 +72,23 @@ class ImagenProductoController extends Controller
      */
     public function update(Request $request, ImagenProducto $imagenProducto)
     {
-        //
+        $validated = $request->validate([
+            'producto_id' => 'sometimes|exists:productos,id',
+            'imagen' => 'sometimes|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'alt' => 'nullable|string|max:255',
+            'es_principal' => 'sometimes|boolean',
+        ]);
+
+        // Si se sube nueva imagen, eliminar la anterior
+        if ($request->hasFile('imagen')) {
+            Storage::disk('public')->delete($imagenProducto->url);
+            $validated['url'] = $request->file('imagen')->store('productos', 'public');
+        }
+
+        $imagenProducto->update($validated);
+        $imagenProducto->load('producto');
+
+        return response()->json($imagenProducto);
     }
 
     /**
@@ -60,6 +96,10 @@ class ImagenProductoController extends Controller
      */
     public function destroy(ImagenProducto $imagenProducto)
     {
-        //
+        // Eliminar archivo de imagen
+        Storage::disk('public')->delete($imagenProducto->url);
+        
+        $imagenProducto->delete();
+        return response()->json(['message' => 'Imagen eliminada correctamente'], 200);
     }
 }

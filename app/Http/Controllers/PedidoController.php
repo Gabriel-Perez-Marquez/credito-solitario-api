@@ -12,7 +12,8 @@ class PedidoController extends Controller
      */
     public function index()
     {
-        //
+        $pedidos = Pedido::with(['cliente', 'estado', 'lineasVenta.producto'])->get();
+        return response()->json($pedidos);
     }
 
     /**
@@ -20,7 +21,6 @@ class PedidoController extends Controller
      */
     public function create()
     {
-        //
     }
 
     /**
@@ -28,7 +28,19 @@ class PedidoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => 'nullable|string|max:255',
+            'cliente_id' => 'required|exists:clientes,id',
+            'estado_id' => 'required|exists:estados,id',
+            'direccionEntrega' => 'required|string|max:255',
+            'fechaPedido' => 'required|date',
+            'fechaEntrega' => 'nullable|date|after_or_equal:fechaPedido',
+        ]);
+
+        $pedido = Pedido::create($validated);
+        $pedido->load(['cliente', 'estado']);
+
+        return response()->json($pedido, 201);
     }
 
     /**
@@ -36,7 +48,8 @@ class PedidoController extends Controller
      */
     public function show(Pedido $pedido)
     {
-        //
+        $pedido->load(['cliente', 'estado', 'lineasVenta.producto', 'factura']);
+        return response()->json($pedido);
     }
 
     /**
@@ -44,7 +57,6 @@ class PedidoController extends Controller
      */
     public function edit(Pedido $pedido)
     {
-        //
     }
 
     /**
@@ -52,7 +64,19 @@ class PedidoController extends Controller
      */
     public function update(Request $request, Pedido $pedido)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => 'nullable|string|max:255',
+            'cliente_id' => 'sometimes|exists:clientes,id',
+            'estado_id' => 'sometimes|exists:estados,id',
+            'direccionEntrega' => 'sometimes|string|max:255',
+            'fechaPedido' => 'sometimes|date',
+            'fechaEntrega' => 'nullable|date|after_or_equal:fechaPedido',
+        ]);
+
+        $pedido->update($validated);
+        $pedido->load(['cliente', 'estado']);
+
+        return response()->json($pedido);
     }
 
     /**
@@ -60,6 +84,7 @@ class PedidoController extends Controller
      */
     public function destroy(Pedido $pedido)
     {
-        //
+        $pedido->delete();
+        return response()->json(['message' => 'Pedido eliminado correctamente'], 200);
     }
 }

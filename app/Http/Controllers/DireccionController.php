@@ -12,7 +12,8 @@ class DireccionController extends Controller
      */
     public function index()
     {
-        //
+        $direcciones = Direccion::all();
+        return response()->json($direcciones);
     }
 
     /**
@@ -20,7 +21,7 @@ class DireccionController extends Controller
      */
     public function create()
     {
-        //
+        // Este método no es necesario para una API REST
     }
 
     /**
@@ -28,7 +29,16 @@ class DireccionController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'municipio' => 'required|string|max:255',
+            'calle' => 'required|string|max:255',
+            'numCasa' => 'required|string|max:255',
+            'provincia' => 'required|string|max:255',
+        ]);
+
+        $direccion = Direccion::create($validated);
+
+        return response()->json($direccion, 201);
     }
 
     /**
@@ -36,7 +46,7 @@ class DireccionController extends Controller
      */
     public function show(Direccion $direccion)
     {
-        //
+        return response()->json($direccion);
     }
 
     /**
@@ -44,7 +54,7 @@ class DireccionController extends Controller
      */
     public function edit(Direccion $direccion)
     {
-        //
+        // Este método no es necesario para una API REST
     }
 
     /**
@@ -52,7 +62,16 @@ class DireccionController extends Controller
      */
     public function update(Request $request, Direccion $direccion)
     {
-        //
+        $validated = $request->validate([
+            'municipio' => 'sometimes|string|max:255',
+            'calle' => 'sometimes|string|max:255',
+            'numCasa' => 'sometimes|string|max:255',
+            'provincia' => 'sometimes|string|max:255',
+        ]);
+
+        $direccion->update($validated);
+
+        return response()->json($direccion);
     }
 
     /**
@@ -60,6 +79,7 @@ class DireccionController extends Controller
      */
     public function destroy(Direccion $direccion)
     {
-        //
+        $direccion->delete();
+        return response()->json(['message' => 'Dirección eliminada correctamente'], 200);
     }
 }

@@ -12,7 +12,8 @@ class ClienteController extends Controller
      */
     public function index()
     {
-        //
+        $clientes = Cliente::with('direccion')->get();
+        return response()->json($clientes);
     }
 
     /**
@@ -20,7 +21,6 @@ class ClienteController extends Controller
      */
     public function create()
     {
-        //
     }
 
     /**
@@ -28,7 +28,18 @@ class ClienteController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'telefono' => 'required|string|max:255',
+            'email' => 'required|email|unique:clientes,email',
+            'direccion_id' => 'required|exists:direccions,id',
+        ]);
+
+        $cliente = Cliente::create($validated);
+        $cliente->load('direccion');
+
+        return response()->json($cliente, 201);
     }
 
     /**
@@ -36,7 +47,8 @@ class ClienteController extends Controller
      */
     public function show(Cliente $cliente)
     {
-        //
+        $cliente->load('direccion', 'pedidos');
+        return response()->json($cliente);
     }
 
     /**
@@ -44,7 +56,6 @@ class ClienteController extends Controller
      */
     public function edit(Cliente $cliente)
     {
-        //
     }
 
     /**
@@ -52,7 +63,18 @@ class ClienteController extends Controller
      */
     public function update(Request $request, Cliente $cliente)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => 'sometimes|string|max:255',
+            'apellidos' => 'sometimes|string|max:255',
+            'telefono' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:clientes,email,' . $cliente->id,
+            'direccion_id' => 'sometimes|exists:direccions,id',
+        ]);
+
+        $cliente->update($validated);
+        $cliente->load('direccion');
+
+        return response()->json($cliente);
     }
 
     /**
@@ -60,6 +82,7 @@ class ClienteController extends Controller
      */
     public function destroy(Cliente $cliente)
     {
-        //
+        $cliente->delete();
+        return response()->json(['message' => 'Cliente eliminado correctamente'], 200);
     }
 }
