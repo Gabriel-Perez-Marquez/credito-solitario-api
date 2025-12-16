@@ -11,4 +11,8 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('secuencias', SecuenciaController::class);
+    Route::apiResource('administradores', AdministradorController::class);
+    Route::apiResource('categorias', CategoriaController::class);
+    Route::apiResource('clientes', ClientesController::class);
+    Route::apiResource('')
 });
