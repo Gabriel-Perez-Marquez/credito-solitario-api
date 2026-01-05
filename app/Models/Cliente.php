@@ -11,8 +11,21 @@ class Cliente extends Model
         'apellidos',
         'telefono',
         'email',
+        'dni',          
+        'saldo',        
+        'activo',       
         'direccion_id',
     ];
+
+
+    /**
+     * Los casts convierten los datos automáticamente al tipo correcto
+     */
+    protected $casts = [
+        'activo' => 'boolean',     
+        'saldo' => 'decimal:2',   
+    ];
+
 
     /**
      * Relación con dirección

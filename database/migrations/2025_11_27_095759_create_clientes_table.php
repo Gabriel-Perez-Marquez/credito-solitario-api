@@ -11,22 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-<<<<<<<< HEAD:database/migrations/2025_11_27_095759_create_clientes_table.php
         Schema::create('clientes', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
             $table->string('apellidos');
             $table->string('telefono');
             $table->string('email');
+            $table->double('saldo', 10, 2)->default(0);
+            $table->string('dni');
+            $table->boolean('activo')->default(true);
             $table->foreignId('direccion_id')->constrained()->cascadeOnDelete();
-========
-        Schema::create('categorias', function (Blueprint $table) {
-            $table->id();
-            $table->string('nombre');
-            $table->boolean('activa')->default(true);
->>>>>>>> f5deffc4c6977d6e32cc07ae4f4347c857157089:database/migrations/2025_11_28_183053_create_categorias_table.php
             $table->timestamps();
         });
+
+        
     }
 
     /**
@@ -34,10 +32,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-<<<<<<<< HEAD:database/migrations/2025_11_27_095759_create_clientes_table.php
         Schema::dropIfExists('clientes');
-========
-        Schema::dropIfExists('categorias');
->>>>>>>> f5deffc4c6977d6e32cc07ae4f4347c857157089:database/migrations/2025_11_28_183053_create_categorias_table.php
+
     }
 };

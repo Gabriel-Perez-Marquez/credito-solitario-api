@@ -33,6 +33,9 @@ class ClienteController extends Controller
             'apellidos' => 'required|string|max:255',
             'telefono' => 'required|string|max:255',
             'email' => 'required|email|unique:clientes,email',
+            'dni' => 'required|string|max:20', 
+            'saldo' => 'nullable|numeric',     
+            'activo' => 'boolean',             
             'direccion_id' => 'required|exists:direccions,id',
         ]);
 
