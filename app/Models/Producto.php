@@ -13,6 +13,8 @@ class Producto extends Model
         'precio',
         'activo',
         'descuento',
+        'stock',
+        'urlImagen',
     ];
 
     protected $casts = [
@@ -37,14 +39,7 @@ class Producto extends Model
         return $this->hasMany(LineaVenta::class);
     }
 
-    /**
-     * Relación con imágenes
-     */
-    public function imagenes()
-    {
-        return $this->hasMany(ImagenProducto::class);
-    }
-
+   
     /**
      * Calcula el precio final después de aplicar descuento
      */

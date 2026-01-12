@@ -36,6 +36,8 @@ class ProductoController extends Controller
             'precio' => 'required|numeric|min:0',
             'activo' => 'sometimes|boolean',
             'descuento' => 'sometimes|numeric|min:0|max:100',
+            'stock' => 'required|integer|min:0',     
+            'urlImagen' => 'nullable|string|url',
         ]);
 
         $producto = Producto::create($validated);
@@ -49,7 +51,7 @@ class ProductoController extends Controller
      */
     public function show(Producto $producto)
     {
-        $producto->load(['categoria', 'lineasVenta', 'imagenes']);
+        $producto->load(['categoria']);
         return response()->json($producto);
     }
 
@@ -66,16 +68,18 @@ class ProductoController extends Controller
      */
     public function update(Request $request, Producto $producto)
     {
-        $validated = $request->validate([
-            'nombre' => 'sometimes|string|max:255',
+         $validated = $request->validate([
+            'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
-            'categoria_id' => 'sometimes|exists:categorias,id',
-            'precio' => 'sometimes|numeric|min:0',
+            'categoria_id' => 'required|exists:categorias,id',
+            'precio' => 'required|numeric|min:0',
             'activo' => 'sometimes|boolean',
             'descuento' => 'sometimes|numeric|min:0|max:100',
+            'stock' => 'required|integer|min:0',     
+            'urlImagen' => 'nullable|string|url',
         ]);
 
-        $producto->update($validated);
+        $producto = update($validated);
         $producto->load('categoria');
 
         return response()->json($producto);

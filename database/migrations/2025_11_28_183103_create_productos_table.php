@@ -19,6 +19,8 @@ return new class extends Migration
             $table->decimal('precio', 10, 2); 
             $table->boolean('activo')->default(true);
             $table->decimal('descuento', 5, 2)->default(0);
+            $table->integer('stock')->default(0); 
+            $table->string('urlImagen')->nullable();
             $table->timestamps();
         });
     }
