@@ -15,6 +15,7 @@ use App\Http\Controllers\EstadoController;
 use App\Http\Controllers\LineaVentaController;
 use App\Http\Controllers\ImagenProductoController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\ShoppingListController;
 
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
@@ -37,5 +38,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('direcciones', DireccionController::class);
     Route::apiResource('estados', EstadoController::class);
     Route::apiResource('linea-ventas', LineaVentaController::class);
-    Route::apiResource('imagenes-producto', ImagenProductoController::class);
+    Route::apiResource('carrito', ShoppingListController::class);
 });
