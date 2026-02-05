@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class LineaVenta extends Model
 {
+    protected $table = 'lineas_ventas'; 
+
     protected $fillable = [
         'pedido_id',
         'producto_id',
@@ -16,21 +18,15 @@ class LineaVenta extends Model
 
     protected $casts = [
         'cantidad' => 'integer',
-        'precioUnidad' => 'decimal:2',
+        'precioUnidad' => 'decimal:2', 
         'precioTotal' => 'decimal:2',
     ];
 
-    /**
-     * Relación con pedido
-     */
     public function pedido()
     {
         return $this->belongsTo(Pedido::class);
     }
 
-    /**
-     * Relación con producto
-     */
     public function producto()
     {
         return $this->belongsTo(Producto::class);

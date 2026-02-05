@@ -8,12 +8,13 @@ use Illuminate\Support\Facades\DB;
 
 class ShoppingListController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $lista = ShoppingList::with('producto')->get();
+        $lista = ShoppingList::with('producto')->get(); 
         return response()->json($lista);
     }
 
@@ -28,25 +29,20 @@ class ShoppingListController extends Controller
             'prioridad' => 'nullable|in:Baja,Media,Alta'
         ]);
 
-        $item = ShoppingList::where('producto_id', $request->producto_id)->first();
+        $item = ShoppingList::updateOrCreate(
+            ['producto_id' => $request->producto_id], 
+            [
+                'cantidad' => DB::raw("cantidad + " . $request->input('cantidad', 1)),
+                'prioridad' => $request->input('prioridad', 'Media') 
+            ]
+        );
 
-        if ($item) {
-            $item->cantidad += $request->input('cantidad', 1);
-            $item->save();
-        } else {
-            $item = ShoppingList::create([
-                'producto_id' => $request->producto_id,
-                'cantidad' => $request->input('cantidad', 1),
-                'prioridad' => $request->input('prioridad', 'Media')
-            ]);
-        }
-        
         $item->load('producto');
 
         return response()->json([
-            'message' => 'Producto añadido a la lista',
+            'message' => 'Producto actualizado en la lista',
             'data' => $item
-        ], 201);
+        ], 200);
     }
 
     /**
@@ -60,7 +56,6 @@ class ShoppingListController extends Controller
         ]);
 
         $item = ShoppingList::findOrFail($id);
-        
         $item->update($request->only(['cantidad', 'prioridad']));
 
         return response()->json($item);
@@ -71,30 +66,24 @@ class ShoppingListController extends Controller
      */
     public function destroy($id)
     {
-        $item = ShoppingList::findOrFail($id);
-        $item->delete();
-
-        return response()->json(['message' => 'Item eliminado de la lista correctamente'], 200);
+        ShoppingList::destroy($id); 
+        return response()->json(['message' => 'Item eliminado de la lista'], 200);
     }
 
-    /**
-     * Confirm the restock operation and update product stock.
-     */
     public function confirmRestock()
     {
         DB::transaction(function () {
-            $items = ShoppingList::with('producto')->get();
+           
+            $items = ShoppingList::whereHas('producto')->with('producto')->get();
 
             foreach ($items as $item) {
-                if ($item->producto) {
-                    $item->producto->stock += $item->cantidad;
-                    $item->producto->save();
-                }
+                
+                $item->producto->increment('stock', $item->cantidad);
             }
 
             ShoppingList::truncate();
         });
 
-        return response()->json(['message' => 'Restock realizado con éxito. Stock actualizado.'], 200);
+        return response()->json(['message' => 'Restock realizado con éxito. Inventario actualizado.'], 200);
     }
 }

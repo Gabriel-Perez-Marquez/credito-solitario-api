@@ -3,24 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\LineaVenta;
+use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LineaVentaController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $lineasVenta = LineaVenta::with(['pedido', 'producto'])->get();
-        return response()->json($lineasVenta);
-    }
+        $query = LineaVenta::with(['pedido', 'producto']);
+       
+        if ($request->has('pedido_id')) {
+            $query->where('pedido_id', $request->pedido_id);
+        }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
+        return response()->json($query->paginate(20));
     }
 
     /**
@@ -35,13 +35,30 @@ class LineaVentaController extends Controller
             'precioUnidad' => 'required|numeric|min:0',
         ]);
 
-        // Calcular precio total
-        $validated['precioTotal'] = $validated['cantidad'] * $validated['precioUnidad'];
+        try {
+            return DB::transaction(function () use ($validated) {
+                $producto = Producto::lockForUpdate()->find($validated['producto_id']);
 
-        $lineaVenta = LineaVenta::create($validated);
-        $lineaVenta->load(['pedido', 'producto']);
 
-        return response()->json($lineaVenta, 201);
+                if ($producto->stock < $validated['cantidad']) {
+                    throw new \Exception("Stock insuficiente. Disponible: {$producto->stock}");
+                }
+
+
+                $validated['precioTotal'] = $validated['cantidad'] * $validated['precioUnidad'];
+
+
+                $lineaVenta = LineaVenta::create($validated);
+
+                $producto->decrement('stock', $validated['cantidad']);
+
+                $lineaVenta->load(['pedido', 'producto']);
+
+                return response()->json($lineaVenta, 201);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     /**
@@ -54,34 +71,22 @@ class LineaVentaController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(LineaVenta $lineaVenta)
-    {
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, LineaVenta $lineaVenta)
     {
         $validated = $request->validate([
-            'pedido_id' => 'sometimes|exists:pedidos,id',
-            'producto_id' => 'sometimes|exists:productos,id',
             'cantidad' => 'sometimes|integer|min:1',
             'precioUnidad' => 'sometimes|numeric|min:0',
         ]);
 
-        // Recalcular precio total si cambia cantidad o precio unitario
-        if (isset($validated['cantidad']) || isset($validated['precioUnidad'])) {
-            $cantidad = $validated['cantidad'] ?? $lineaVenta->cantidad;
-            $precioUnidad = $validated['precioUnidad'] ?? $lineaVenta->precioUnidad;
-            $validated['precioTotal'] = $cantidad * $precioUnidad;
-        }
+        $cantidad = $validated['cantidad'] ?? $lineaVenta->cantidad;
+        $precioUnidad = $validated['precioUnidad'] ?? $lineaVenta->precioUnidad;
+        
+        $validated['precioTotal'] = $cantidad * $precioUnidad;
 
         $lineaVenta->update($validated);
-        $lineaVenta->load(['pedido', 'producto']);
-
+        
         return response()->json($lineaVenta);
     }
 
@@ -91,6 +96,6 @@ class LineaVentaController extends Controller
     public function destroy(LineaVenta $lineaVenta)
     {
         $lineaVenta->delete();
-        return response()->json(['message' => 'Línea de venta eliminada correctamente'], 200);
+        return response()->json(['message' => 'Línea eliminada correctamente'], 200);
     }
 }

@@ -6,10 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class ShoppingList extends Model
 {
-    protected $fillable = ['producto_id', 'cantidad', 'prioridad'];
+    protected $table = 'shopping_lists';
+
+    protected $fillable = [
+        'producto_id',
+        'cantidad',
+        'prioridad', 
+    ];
+
+    protected $casts = [
+        'cantidad' => 'integer',
+        
+    ];
 
     public function producto()
     {
-        return $this->belongsTo(Producto::class, 'producto_id');
+        return $this->belongsTo(Producto::class);
     }
 }
