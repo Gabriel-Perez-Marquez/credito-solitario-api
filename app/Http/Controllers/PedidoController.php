@@ -30,12 +30,20 @@ class PedidoController extends Controller
     {
         $validated = $request->validate([
             'nombre' => 'nullable|string|max:255',
-            'cliente_id' => 'required|exists:clientes,id',
+            'tipo' => 'nullable|in:venta,reposicion',
+            'cliente_id' => 'nullable|exists:clientes,id',
             'estado_id' => 'required|exists:estados,id',
             'direccionEntrega' => 'required|string|max:255',
             'fechaPedido' => 'required|date',
             'fechaEntrega' => 'nullable|date|after_or_equal:fechaPedido',
         ]);
+
+        $validated['tipo'] = $validated['tipo'] ?? 'venta';
+        if ($validated['tipo'] === 'venta' && empty($validated['cliente_id'])) {
+            return response()->json([
+                'message' => 'El cliente_id es obligatorio para pedidos de venta',
+            ], 422);
+        }
 
         $pedido = Pedido::create($validated);
         $pedido->load(['cliente', 'estado']);
@@ -66,7 +74,8 @@ class PedidoController extends Controller
     {
         $validated = $request->validate([
             'nombre' => 'nullable|string|max:255',
-            'cliente_id' => 'sometimes|exists:clientes,id',
+            'tipo' => 'sometimes|in:venta,reposicion',
+            'cliente_id' => 'sometimes|nullable|exists:clientes,id',
             'estado_id' => 'sometimes|exists:estados,id',
             'direccionEntrega' => 'sometimes|string|max:255',
             'fechaPedido' => 'sometimes|date',

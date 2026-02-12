@@ -33,11 +33,14 @@ class ClienteController extends Controller
             'apellidos' => 'required|string|max:255',
             'telefono' => 'required|string|max:255',
             'email' => 'required|email|unique:clientes,email',
-            'dni' => 'required|string|max:20', 
-            'saldo' => 'nullable|numeric',     
-            'activo' => 'boolean',             
+            'dni' => 'required|string|max:20',
+            'saldo' => 'nullable|numeric|min:0',
+            'activo' => 'nullable|boolean',
             'direccion_id' => 'required|exists:direccions,id',
         ]);
+
+        $validated['saldo'] = $validated['saldo'] ?? 0;
+        $validated['activo'] = $validated['activo'] ?? true;
 
         $cliente = Cliente::create($validated);
         $cliente->load('direccion');
@@ -71,6 +74,9 @@ class ClienteController extends Controller
             'apellidos' => 'sometimes|string|max:255',
             'telefono' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:clientes,email,' . $cliente->id,
+            'dni' => 'sometimes|string|max:20',
+            'saldo' => 'sometimes|numeric|min:0',
+            'activo' => 'sometimes|boolean',
             'direccion_id' => 'sometimes|exists:direccions,id',
         ]);
 

@@ -8,6 +8,7 @@ class Pedido extends Model
 {
     protected $fillable = [
         'nombre',
+        'tipo',
         'cliente_id',
         'estado_id',
         'direccionEntrega',

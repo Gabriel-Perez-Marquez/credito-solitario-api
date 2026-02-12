@@ -28,6 +28,11 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('shopping-list/confirm-order', [ShoppingListController::class, 'confirmOrder']);
+    Route::post('shopping-list/confirm-restock', [ShoppingListController::class, 'confirmRestock']);
+    Route::post('carrito/confirm-order', [ShoppingListController::class, 'confirmOrder']);
+    Route::post('carrito/confirm-restock', [ShoppingListController::class, 'confirmRestock']);
+
     Route::apiResource('secuencias', SecuenciaController::class);
     Route::apiResource('administradores', AdministradorController::class);
     Route::apiResource('clientes', ClienteController::class);
@@ -39,4 +44,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('estados', EstadoController::class);
     Route::apiResource('linea-ventas', LineaVentaController::class);
     Route::apiResource('carrito', ShoppingListController::class);
+    Route::apiResource('shopping-list', ShoppingListController::class);
 });
