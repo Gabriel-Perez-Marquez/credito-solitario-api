@@ -4,6 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Pedido;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Models\Producto;
+use App\Models\LineaVenta;
+use App\Models\Cliente;
+use Carbon\Carbon;
+use App\Models\Estado;
 
 class PedidoController extends Controller
 {
@@ -95,5 +101,82 @@ class PedidoController extends Controller
     {
         $pedido->delete();
         return response()->json(['message' => 'Pedido eliminado correctamente'], 200);
+    }
+
+
+    public function checkoutVenta(Request $request)
+    {
+        
+        $validated = $request->validate([
+            'cliente_id' => 'required|exists:clientes,id',
+            'lineas' => 'required|array|min:1', 
+            'lineas.*.producto_id' => 'required|exists:productos,id',
+            'lineas.*.cantidad' => 'required|integer|min:1',
+        ]);
+
+        try {
+            
+            $pedido = DB::transaction(function () use ($validated) {
+                
+
+                $cliente = Cliente::with('direccion')->findOrFail($validated['cliente_id']);
+            
+                $direccionString = 'Dirección no especificada';
+                if ($cliente->direccion) {
+                    $direccionString = $cliente->direccion->calle . ' ' . 
+                                    $cliente->direccion->numCasa . ', ' . 
+                                    $cliente->direccion->municipio . ' (' . 
+                                    $cliente->direccion->provincia . ')';
+                }
+                
+
+                $estado = Estado::firstOrCreate(['nombre' => 'Pendiente']);
+                
+
+                $pedido = Pedido::create([
+                    'tipo' => 'venta',
+                    'cliente_id' => $validated['cliente_id'],
+                    'estado_id' => $estado->id,
+                    'direccionEntrega' => $direccionString,
+                    'fechaPedido' => Carbon::now(),
+                ]);
+
+                
+                foreach ($validated['lineas'] as $linea) {
+                    
+                    $producto = Producto::lockForUpdate()->findOrFail($linea['producto_id']);
+
+                    
+                    if ($producto->stock < $linea['cantidad']) {
+                        throw new \Exception("Stock insuficiente para: {$producto->nombre}");
+                    }
+
+                    $precioUnidad = $producto->precioFinal; 
+                    
+                    
+                    LineaVenta::create([
+                        'pedido_id' => $pedido->id,
+                        'producto_id' => $producto->id,
+                        'cantidad' => $linea['cantidad'],
+                        'precioUnidad' => $precioUnidad,
+                        'precioTotal' => $precioUnidad * $linea['cantidad'],
+                    ]);
+
+                    
+                    $producto->decrement('stock', $linea['cantidad']);
+                }
+
+                return $pedido->load(['lineasVenta.producto']);
+            });
+
+            return response()->json([
+                'message' => 'Compra realizada con éxito',
+                'pedido' => $pedido
+            ], 201);
+
+        } catch (\Exception $e) {
+           
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 }

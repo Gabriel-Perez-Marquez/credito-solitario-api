@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('shopping-list/confirm-restock', [ShoppingListController::class, 'confirmRestock']);
     Route::post('carrito/confirm-order', [ShoppingListController::class, 'confirmOrder']);
     Route::post('carrito/confirm-restock', [ShoppingListController::class, 'confirmRestock']);
+    Route::post('carrito/checkout-movil', [PedidoController::class, 'checkoutVenta']);
 
     Route::apiResource('secuencias', SecuenciaController::class);
     Route::apiResource('administradores', AdministradorController::class);
