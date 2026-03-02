@@ -17,11 +17,19 @@ use App\Http\Controllers\ImagenProductoController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+Route::post('/register', [RegisteredUserController::class, 'store']);
+
+Route::apiResource('administradores', AdministradorController::class);
+
 
 Route::middleware('auth:sanctum')->post('/logout', [AuthenticatedSessionController::class, 'destroy']);
+
+Route::middleware('auth:sanctum')->post('/profile', [ProfileController::class, 'update']);
 
 Route::middleware('auth:sanctum')->post('/change-password', [ChangePasswordController::class, 'update']);
 
@@ -35,9 +43,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('carrito/confirm-order', [ShoppingListController::class, 'confirmOrder']);
     Route::post('carrito/confirm-restock', [ShoppingListController::class, 'confirmRestock']);
     Route::post('carrito/checkout-movil', [PedidoController::class, 'checkoutVenta']);
-
+    Route::get('/my-orders', [PedidoController::class, 'misPedidos']);
     Route::apiResource('secuencias', SecuenciaController::class);
-    Route::apiResource('administradores', AdministradorController::class);
     Route::apiResource('clientes', ClienteController::class);
     Route::apiResource('productos', ProductoController::class);
     Route::apiResource('pedidos', PedidoController::class);

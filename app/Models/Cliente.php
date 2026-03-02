@@ -15,6 +15,7 @@ class Cliente extends Model
         'saldo',        
         'activo',       
         'direccion_id',
+        'user_id'
     ];
 
 
@@ -41,5 +42,10 @@ class Cliente extends Model
     public function pedidos()
     {
         return $this->hasMany(Pedido::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

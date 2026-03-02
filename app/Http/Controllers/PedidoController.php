@@ -179,4 +179,26 @@ class PedidoController extends Controller
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
+
+
+    /**
+     * Obtiene el historial de pedidos del usuario autenticado.
+     */
+    public function misPedidos(Request $request)
+    {
+        $user = $request->user();
+
+        // Verificamos si el usuario tiene un perfil de cliente asociado
+        if (!$user->cliente) {
+            return response()->json([], 200); // Si no tiene cliente, no hay pedidos
+        }
+
+        // Buscamos los pedidos
+        $pedidos = $user->cliente->pedidos()
+            ->with(['estado', 'lineasVenta.producto'])
+            ->orderBy('fechaPedido', 'desc') 
+            ->get();
+
+        return response()->json($pedidos, 200);
+    }
 }

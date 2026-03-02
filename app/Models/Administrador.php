@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Administrador extends Model
 {
     protected $fillable = [
+        'user_id', 
         'nombre',
         'apellidos',
-        'email',
-        'password',
     ];
 
-    protected $hidden = [
-        'password',
-    ];
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

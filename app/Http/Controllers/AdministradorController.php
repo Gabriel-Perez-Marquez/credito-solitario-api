@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Administrador;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -30,18 +31,29 @@ class AdministradorController extends Controller
      */
     public function store(Request $request)
     {
+        // Validamos los datos (el email se comprueba en 'users')
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
-            'email' => 'required|email|unique:administradors,email',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
+        // Creamos el Usuario para el Login
+        $user = User::create([
+            'name' => $validated['nombre'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+        ]);
 
-        $administrador = Administrador::create($validated);
+        // Creamos el Perfil de Administrador vinculado
+        $administrador = Administrador::create([
+            'user_id' => $user->id,
+            'nombre' => $validated['nombre'],
+            'apellidos' => $validated['apellidos'],
+        ]);
 
-        return response()->json($administrador, 201);
+        return response()->json($administrador->load('user'), 201);
     }
 
     /**
