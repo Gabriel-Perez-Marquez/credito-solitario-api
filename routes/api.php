@@ -16,12 +16,14 @@ use App\Http\Controllers\LineaVentaController;
 use App\Http\Controllers\ImagenProductoController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ShoppingListController;
+use App\Http\Controllers\Auth\ChangePasswordController;
 
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
 Route::middleware('auth:sanctum')->post('/logout', [AuthenticatedSessionController::class, 'destroy']);
 
+Route::middleware('auth:sanctum')->post('/change-password', [ChangePasswordController::class, 'update']);
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
@@ -46,4 +48,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('linea-ventas', LineaVentaController::class);
     Route::apiResource('carrito', ShoppingListController::class);
     Route::apiResource('shopping-list', ShoppingListController::class);
+
+    
 });
