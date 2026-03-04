@@ -34,7 +34,7 @@ Route::middleware('auth:sanctum')->post('/profile', [ProfileController::class, '
 Route::middleware('auth:sanctum')->post('/change-password', [ChangePasswordController::class, 'update']);
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
-    return $request->user();
+    return $request->user()->load('cliente.direccion');
 });
 
 Route::middleware('auth:sanctum')->group(function () {

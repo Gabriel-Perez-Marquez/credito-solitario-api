@@ -28,6 +28,7 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'apellidos' => ['nullable', 'string', 'max:255'],
             'telefono' => ['nullable', 'string', 'max:255'],
+            'saldo' => 'nullable|numeric|min:0',
             'dni' => ['nullable', 'string', 'max:20'],
             'municipio' => ['nullable', 'string', 'max:255'],
             'calle' => ['nullable', 'string', 'max:255'],
@@ -59,7 +60,7 @@ class RegisteredUserController extends Controller
             'telefono' => $request->telefono ?? '',
             'email' => $request->email,
             'dni' => $request->dni ?? '00000000X',
-            'saldo' => 0,
+            'saldo' => $request->saldo ?? 0,
             'activo' => true,
         ]);
 
