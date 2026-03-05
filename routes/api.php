@@ -19,6 +19,7 @@ use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\NotificacionController;
 
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
@@ -55,6 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('linea-ventas', LineaVentaController::class);
     Route::apiResource('carrito', ShoppingListController::class);
     Route::apiResource('shopping-list', ShoppingListController::class);
-
+    Route::get('/notificaciones', [NotificacionController::class, 'index']);
+    Route::post('/notificaciones', [NotificacionController::class, 'store']);
     
 });
