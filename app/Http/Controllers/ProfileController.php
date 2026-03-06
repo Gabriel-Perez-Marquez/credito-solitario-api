@@ -4,50 +4,69 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Direccion;
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
     public function update(Request $request)
     {
-        $user = $request->user();
+        try {
+            if (!$request->has('calle') && !$request->has('numCasa')) {
+                return response()->json([
+                    'message' => "¡Flutter sigue enviando la variable antigua! Asegúrate de guardar el archivo 'profile_service.dart' en tu editor de código y REINICIAR el emulador por completo (botón cuadrado rojo de Stop)."
+                ], 400);
+            }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            'telefono' => 'nullable|string|max:255',
-            'calle' => 'nullable|string|max:255',      
-            'numCasa' => 'nullable|string|max:255',     
-            'municipio' => 'nullable|string|max:255',   
-        ]);
+            $user = $request->user();
 
-        $user->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-        ]);
-
-        $cliente = $user->cliente;
-
-        if ($cliente) {
-            $cliente->update([
-                'telefono' => $request->telefono ?? $cliente->telefono,
-                'nombre' => $request->name,
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+                'telefono' => 'nullable|string|max:255',
+                'calle' => 'nullable|string|max:255',      
+                'numCasa' => 'nullable|string|max:255',     
+                'municipio' => 'nullable|string|max:255',   
             ]);
 
-            if ($cliente->direccion_id) {
-                $direccionReal = Direccion::find($cliente->direccion_id);
-                
-                if ($direccionReal) {
-                    $direccionReal->update([
-                        'calle' => !empty($request->calle) ? $request->calle : $direccionReal->calle,
-                        'numCasa' => !empty($request->numCasa) ? $request->numCasa : $direccionReal->numCasa,
-                        'municipio' => !empty($request->municipio) ? $request->municipio : $direccionReal->municipio,
+            $user->update([
+                'name' => $request->name,
+                'email' => $request->email,
+            ]);
+
+            $cliente = $user->cliente;
+
+            if ($cliente) {
+                $cliente->update([
+                    'telefono' => $request->telefono ?? $cliente->telefono,
+                    'nombre' => $request->name,
+                ]);
+
+                if ($cliente->direccion_id) {
+                    DB::table('direccions')->where('id', $cliente->direccion_id)->update([
+                        'calle' => $request->calle ?: 'Sin especificar',
+                        'numCasa' => $request->numCasa ?: '0',
+                        'municipio' => $request->municipio ?: 'Sin especificar',
                     ]);
+                } else {
+                    $nuevaDireccion = Direccion::create([
+                        'calle' => $request->calle ?: 'Sin especificar',
+                        'numCasa' => $request->numCasa ?: '0',
+                        'municipio' => $request->municipio ?: 'Sin especificar',
+                        'provincia' => 'Sin especificar',
+                    ]);
+                    $cliente->update(['direccion_id' => $nuevaDireccion->id]);
                 }
             }
+            
+            return response()->json([
+                'message' => 'Perfil actualizado correctamente',
+                'user' => $user->fresh('cliente.direccion')
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error del backend: ' . $e->getMessage()
+            ], 500);
         }
-        return response()->json([
-            'message' => 'Perfil actualizado correctamente',
-            'user' => $user->fresh('cliente.direccion')
-        ], 200);
     }
 }

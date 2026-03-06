@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Cliente;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use App\Models\Direccion;
 
 class ClienteController extends Controller
 {
@@ -81,6 +85,7 @@ class ClienteController extends Controller
             'calle' => 'nullable|string|max:255',
             'numCasa' => 'nullable|string|max:255',
             'municipio' => 'nullable|string|max:255',
+            'provincia' => 'nullable|string|max:255',
             'password' => 'nullable|min:8',
         ]);
 
@@ -110,19 +115,21 @@ class ClienteController extends Controller
         }
 
         if ($cliente->direccion_id) {
-            $cliente->direccion()->update([
-                'calle' => $request->calle ?? $cliente->direccion->calle,
-                'numCasa' => $request->numCasa ?? $cliente->direccion->numCasa,
-                'municipio' => $request->municipio ?? $cliente->direccion->municipio,
-            ]);
-        } else {
-            $nuevaDireccion = Direccion::create([
-                'calle' => $request->calle ?? 'Sin especificar',
-                'numCasa' => $request->numCasa ?? '0',
-                'municipio' => $request->municipio ?? 'Sin especificar',
-            ]);
-            $cliente->update(['direccion_id' => $nuevaDireccion->id]);
-        }
+                $cliente->direccion()->update([
+                    'calle' => $request->calle ?: 'Sin especificar',
+                    'numCasa' => $request->numCasa ?: '0',
+                    'municipio' => $request->municipio ?: 'Sin especificar',
+                    'provincia' => $request->provincia ?: 'Sin especificar',
+                ]);
+            } else {
+                $nuevaDireccion = \App\Models\Direccion::create([
+                    'calle' => $request->calle ?: 'Sin especificar',
+                    'numCasa' => $request->numCasa ?: '0',
+                    'municipio' => $request->municipio ?: 'Sin especificar',
+                    'provincia' => $request->provincia ?: 'Sin especificar',
+                ]);
+                $cliente->update(['direccion_id' => $nuevaDireccion->id]);
+            }
     });
 
     $cliente->load(['direccion', 'user']);
