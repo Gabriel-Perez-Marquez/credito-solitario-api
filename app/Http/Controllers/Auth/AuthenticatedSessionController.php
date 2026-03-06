@@ -24,6 +24,16 @@ class AuthenticatedSessionController extends Controller
             return response(['message' => 'Invalid credentials'], 422);
         }
 
+        $user = Auth::user();
+
+        if ($user->cliente) { 
+            Auth::logout(); 
+            return response()->json([
+                'message' => 'Acceso denegado. Esta cuenta no tiene permisos de administrador.'
+            ], 403); 
+        }
+
+
         $token = $request->user()->createToken('api')->plainTextToken;
         return response([
             'token' => $token,
