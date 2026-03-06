@@ -47,4 +47,14 @@ class NotificacionController extends Controller
             'data' => $notificacion
         ], 201);
     }
+
+
+    public function marcarComoLeidas(Request $request)
+    {
+        Notificacion::where('user_id', $request->user()->id)
+                    ->where('leida', false)
+                    ->update(['leida' => true]);
+
+        return response()->json(['message' => 'Notificaciones marcadas como leídas']);
+    }
 }

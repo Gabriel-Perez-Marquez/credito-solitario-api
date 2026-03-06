@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Direccion;
 
 class ProfileController extends Controller
 {
@@ -10,38 +11,43 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // Validamos los datos combinados
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'telefono' => 'nullable|string|max:255',
-            'direccion' => 'nullable|string|max:255', 
+            'calle' => 'nullable|string|max:255',      
+            'numCasa' => 'nullable|string|max:255',     
+            'municipio' => 'nullable|string|max:255',   
         ]);
 
-        // Actualizamos el Login (User)
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
         ]);
 
-        // Actualizamos el Perfil (Cliente) y su Dirección
-        if ($user->cliente) {
-            $user->cliente->update([
-                'telefono' => $validated['telefono'] ?? $user->cliente->telefono,
-                'nombre' => $validated['name'],
+        $cliente = $user->cliente;
+
+        if ($cliente) {
+            $cliente->update([
+                'telefono' => $request->telefono ?? $cliente->telefono,
+                'nombre' => $request->name,
             ]);
 
-            if ($user->cliente->direccion) {
-                $user->cliente->direccion->update([
-                    'calle' => $validated['direccion'] ?? $user->cliente->direccion->calle,
-                ]);
+            if ($cliente->direccion_id) {
+                $direccionReal = Direccion::find($cliente->direccion_id);
+                
+                if ($direccionReal) {
+                    $direccionReal->update([
+                        'calle' => !empty($request->calle) ? $request->calle : $direccionReal->calle,
+                        'numCasa' => !empty($request->numCasa) ? $request->numCasa : $direccionReal->numCasa,
+                        'municipio' => !empty($request->municipio) ? $request->municipio : $direccionReal->municipio,
+                    ]);
+                }
             }
         }
-
-        // Devolvemos el usuario con todas sus relaciones cargadas
         return response()->json([
             'message' => 'Perfil actualizado correctamente',
-            'user' => $user->load('cliente.direccion')
+            'user' => $user->fresh('cliente.direccion')
         ], 200);
     }
 }

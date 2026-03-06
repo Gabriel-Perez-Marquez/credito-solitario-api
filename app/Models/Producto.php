@@ -11,10 +11,10 @@ class Producto extends Model
         'descripcion',
         'categoria_id',
         'precio',
-        'activo',
         'descuento',
         'stock',
         'urlImagen',
+        'activo'
     ];
 
     protected $casts = [

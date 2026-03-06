@@ -10,6 +10,7 @@ use App\Models\LineaVenta;
 use App\Models\Cliente;
 use Carbon\Carbon;
 use App\Models\Estado;
+use App\Models\Notificacion;
 
 class PedidoController extends Controller
 {
@@ -89,7 +90,23 @@ class PedidoController extends Controller
         ]);
 
         $pedido->update($validated);
+        
         $pedido->load(['cliente', 'estado']);
+
+        if ($pedido->wasChanged('estado_id')) {
+            
+            if ($pedido->estado && $pedido->estado->nombre === 'Finalizado') {
+                
+                if ($pedido->cliente && $pedido->cliente->user_id) {
+                    \App\Models\Notificacion::create([
+                        'user_id' => $pedido->cliente->user_id,
+                        'titulo'  => '¡Pedido Finalizado! 🎉',
+                        'mensaje' => "Tu pedido #{$pedido->id} ya está listo y ha sido finalizado.",
+                        'leida'   => false,
+                    ]);
+                }
+            }
+        }
 
         return response()->json($pedido);
     }
@@ -141,6 +158,7 @@ class PedidoController extends Controller
                     'fechaPedido' => Carbon::now(),
                 ]);
 
+                $costeTotalPedido = 0;
                 
                 foreach ($validated['lineas'] as $linea) {
                     
@@ -151,8 +169,8 @@ class PedidoController extends Controller
                         throw new \Exception("Stock insuficiente para: {$producto->nombre}");
                     }
 
-                    $precioUnidad = $producto->precioFinal; 
-                    
+                    $precioUnidad = $producto->precio;
+                    $costeLinea = $precioUnidad * $linea['cantidad'];
                     
                     LineaVenta::create([
                         'pedido_id' => $pedido->id,
@@ -164,7 +182,15 @@ class PedidoController extends Controller
 
                     
                     $producto->decrement('stock', $linea['cantidad']);
+
+                    $costeTotalPedido += $costeLinea;
                 }
+
+                if ($cliente->saldo < $costeTotalPedido) {
+                    throw new \Exception("Saldo insuficiente. El pedido cuesta {$costeTotalPedido} pts y tienes {$cliente->saldo} pts.");
+                }
+
+                $cliente->decrement('saldo', $costeTotalPedido);
 
                 return $pedido->load(['lineasVenta.producto']);
             });

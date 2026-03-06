@@ -30,7 +30,7 @@ Route::apiResource('administradores', AdministradorController::class);
 
 Route::middleware('auth:sanctum')->post('/logout', [AuthenticatedSessionController::class, 'destroy']);
 
-Route::middleware('auth:sanctum')->post('/profile', [ProfileController::class, 'update']);
+Route::middleware('auth:sanctum')->put('/profile', [ProfileController::class, 'update']);
 
 Route::middleware('auth:sanctum')->post('/change-password', [ChangePasswordController::class, 'update']);
 
@@ -58,5 +58,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('shopping-list', ShoppingListController::class);
     Route::get('/notificaciones', [NotificacionController::class, 'index']);
     Route::post('/notificaciones', [NotificacionController::class, 'store']);
+    Route::post('/notificaciones/leer', [NotificacionController::class, 'marcarComoLeidas']);
     
 });

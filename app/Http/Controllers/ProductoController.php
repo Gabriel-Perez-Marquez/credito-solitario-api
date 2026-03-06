@@ -79,7 +79,7 @@ class ProductoController extends Controller
             'urlImagen' => 'nullable|string|url',
         ]);
 
-        $producto = update($validated);
+        $producto->update($validated);
         $producto->load('categoria');
 
         return response()->json($producto);
